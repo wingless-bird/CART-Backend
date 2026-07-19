@@ -12,6 +12,7 @@ const connectDB = require("./config/db");
 // Routes
 const productRoutes = require("./routes/productRoutes");
 const saleRoutes = require("./routes/saleRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 // Connect MongoDB
 connectDB();
@@ -34,6 +35,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // ======================
 app.use("/api/products", productRoutes);
 app.use("/api/sales", saleRoutes);
+app.use("/api/auth", authRoutes);
 
 // ======================
 // Test Route

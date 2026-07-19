@@ -12,6 +12,8 @@ const {
     deleteProduct
 } = require("../controllers/productController");
 
+const verifyToken = require("../middleware/authMiddleware");
+
 // ===============================
 // Multer Storage Configuration
 // ===============================
@@ -35,16 +37,16 @@ const upload = multer({
 // Routes
 // ===============================
 
-// GET ALL PRODUCTS
+// GET ALL PRODUCTS (public — storefront needs this)
 router.get("/", getProducts);
 
-// CREATE PRODUCT WITH IMAGE
-router.post("/", upload.single("image"), createProduct);
+// CREATE PRODUCT WITH IMAGE (admin only)
+router.post("/", verifyToken, upload.single("image"), createProduct);
 
-// UPDATE PRODUCT
-router.put("/:id", updateProduct);
+// UPDATE PRODUCT (admin only)
+router.put("/:id", verifyToken, updateProduct);
 
-// DELETE PRODUCT
-router.delete("/:id", deleteProduct);
+// DELETE PRODUCT (admin only)
+router.delete("/:id", verifyToken, deleteProduct);
 
 module.exports = router;
