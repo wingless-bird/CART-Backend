@@ -1,8 +1,18 @@
 const jwt = require("jsonwebtoken");
 const Admin = require("../models/Admin");
 
+const COOKIE_NAME = "token";
+
+// Cross-origin (Vercel <-> Render) cookies require SameSite=None + Secure
+const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 8 * 60 * 60 * 1000 // 8 hours, matches JWT expiry below
+};
+
 // ==========================================================
-// LOGIN
+// LOGIN — issues an httpOnly JWT cookie
 // ==========================================================
 const loginAdmin = async (req, res) => {
 
@@ -38,10 +48,9 @@ const loginAdmin = async (req, res) => {
             { expiresIn: "8h" }
         );
 
-        res.json({
-            token,
-            username: admin.username
-        });
+        res.cookie(COOKIE_NAME, token, cookieOptions);
+
+        res.json({ username: admin.username });
 
     } catch (error) {
 
@@ -54,7 +63,30 @@ const loginAdmin = async (req, res) => {
 };
 
 // ==========================================================
-// CHANGE CREDENTIALS (protected — requires a valid token)
+// ME — confirms whether the current cookie is a valid session
+// (req.admin is attached by the verifyToken middleware)
+// ==========================================================
+const getCurrentAdmin = (req, res) => {
+    res.json({ username: req.admin.username });
+};
+
+// ==========================================================
+// LOGOUT — clears the cookie
+// ==========================================================
+const logoutAdmin = (req, res) => {
+
+    res.clearCookie(COOKIE_NAME, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none"
+    });
+
+    res.json({ message: "Logged out" });
+
+};
+
+// ==========================================================
+// CHANGE CREDENTIALS (protected — requires a valid session)
 // ==========================================================
 const changeCredentials = async (req, res) => {
 
@@ -91,4 +123,9 @@ const changeCredentials = async (req, res) => {
 
 };
 
-module.exports = { loginAdmin, changeCredentials };
+module.exports = {
+    loginAdmin,
+    getCurrentAdmin,
+    logoutAdmin,
+    changeCredentials
+};

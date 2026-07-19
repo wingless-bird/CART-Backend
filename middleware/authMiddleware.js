@@ -2,18 +2,17 @@ const jwt = require("jsonwebtoken");
 
 // ==========================================================
 // VERIFY TOKEN
-// Protects a route by requiring a valid "Authorization: Bearer <token>"
-// header. On success, attaches the decoded admin info to req.admin.
+// Protects a route by requiring a valid JWT in the httpOnly
+// "token" cookie. On success, attaches the decoded admin info
+// to req.admin.
 // ==========================================================
 const verifyToken = (req, res, next) => {
 
-    const authHeader = req.headers.authorization;
+    const token = req.cookies && req.cookies.token;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!token) {
         return res.status(401).json({ message: "No token provided" });
     }
-
-    const token = authHeader.split(" ")[1];
 
     try {
 

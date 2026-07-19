@@ -5,6 +5,7 @@ dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 const connectDB = require("./config/db");
@@ -22,8 +23,14 @@ const app = express();
 // ======================
 // Middleware
 // ======================
-app.use(cors());
+// Cross-origin cookies require an explicit origin (not "*") plus credentials: true.
+// FRONTEND_URL must be set in the environment to your exact Vercel URL, no trailing slash.
+app.use(cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 // ======================
 // Static Files
