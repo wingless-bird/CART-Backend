@@ -1,18 +1,9 @@
 const jwt = require("jsonwebtoken");
 const Admin = require("../models/Admin");
 
-const COOKIE_NAME = "token";
-
-// Cross-origin (Vercel <-> Render) cookies require SameSite=None + Secure
-const cookieOptions = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-    maxAge: 8 * 60 * 60 * 1000 // 8 hours, matches JWT expiry below
-};
-
 // ==========================================================
-// LOGIN — issues an httpOnly JWT cookie
+// LOGIN — returns a JWT for the client to store and send back
+// as an Authorization: Bearer <token> header on future requests
 // ==========================================================
 const loginAdmin = async (req, res) => {
 
@@ -48,9 +39,10 @@ const loginAdmin = async (req, res) => {
             { expiresIn: "8h" }
         );
 
-        res.cookie(COOKIE_NAME, token, cookieOptions);
-
-        res.json({ username: admin.username });
+        res.json({
+            token,
+            username: admin.username
+        });
 
     } catch (error) {
 
@@ -63,30 +55,7 @@ const loginAdmin = async (req, res) => {
 };
 
 // ==========================================================
-// ME — confirms whether the current cookie is a valid session
-// (req.admin is attached by the verifyToken middleware)
-// ==========================================================
-const getCurrentAdmin = (req, res) => {
-    res.json({ username: req.admin.username });
-};
-
-// ==========================================================
-// LOGOUT — clears the cookie
-// ==========================================================
-const logoutAdmin = (req, res) => {
-
-    res.clearCookie(COOKIE_NAME, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none"
-    });
-
-    res.json({ message: "Logged out" });
-
-};
-
-// ==========================================================
-// CHANGE CREDENTIALS (protected — requires a valid session)
+// CHANGE CREDENTIALS (protected — requires a valid token)
 // ==========================================================
 const changeCredentials = async (req, res) => {
 
@@ -123,9 +92,4 @@ const changeCredentials = async (req, res) => {
 
 };
 
-module.exports = {
-    loginAdmin,
-    getCurrentAdmin,
-    logoutAdmin,
-    changeCredentials
-};
+module.exports = { loginAdmin, changeCredentials };
